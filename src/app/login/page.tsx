@@ -22,11 +22,11 @@ export default async function LoginPage({
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+    <div className="flex min-h-screen items-center justify-center p-4" style={{ backgroundColor: 'var(--background)' }}>
+      <div className="w-full max-w-md p-8 space-y-6 rounded-lg shadow-md" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Connexion</h1>
-          <p className="mt-2 text-gray-600">Accédez à votre espace administrateur</p>
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>Connexion</h1>
+          <p className="mt-2" style={{ color: 'var(--subtitle-color)' }}>Accédez à votre espace administrateur</p>
         </div>
         <LoginForm callbackUrl={callbackUrl} />
       </div>

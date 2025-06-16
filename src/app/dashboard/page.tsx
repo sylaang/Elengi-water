@@ -1,24 +1,22 @@
 // src/app/dashboard/page.tsx
 import { ProtectedRoute } from '@/app/components/auth/protected-route'
 import { UserCard } from '@/app/components/user-card'
-import { LogoutButton } from '@/app/components/auth/logout-button'
-import { CreateUserForm } from '@/app/components/auth/create-user-form'
-import { UsersList } from '@/app/components/users/users-list'
 
 export default function DashboardPage() {
   return (
     <ProtectedRoute requiredRole="ADMIN">
-      <div className="min-h-screen bg-gray-50 text-gray-900">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Tableau de bord Administrateur</h1>
-            <LogoutButton />
+      <div>
+        <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--foreground)' }}>
+          Tableau de bord Administrateur
+        </h1>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <UserCard />
+          <div className="p-6 rounded-lg shadow-md" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+            <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--foreground)' }}>Bienvenue sur votre espace administrateur</h2>
+            <p style={{ color: 'var(--subtitle-color)' }}>
+              Vous pouvez gérer les utilisateurs et consulter les statistiques depuis ce tableau de bord.
+            </p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <UserCard />
-            <CreateUserForm />
-          </div>
-          <UsersList />
         </div>
       </div>
     </ProtectedRoute>
