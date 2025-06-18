@@ -7,7 +7,11 @@ import {
   Users, 
   UserPlus, 
   LogOut,
-  User
+  User,
+  Wallet,
+  Calendar,
+  CalendarDays,
+  CalendarRange
 } from 'lucide-react';
 import { useAuth } from '@/app/providers/auth-provider';
 
@@ -22,6 +26,26 @@ export function Sidebar() {
       href: '/dashboard',
       label: 'Tableau de bord',
       icon: LayoutDashboard
+    },
+    {
+      href: '/dashboard/operations',
+      label: 'Opérations',
+      icon: Wallet
+    },
+    {
+      href: '/dashboard/summary/day',
+      label: 'Résumé du jour',
+      icon: Calendar
+    },
+    {
+      href: '/dashboard/summary/week',
+      label: 'Résumé de la semaine',
+      icon: CalendarDays
+    },
+    {
+      href: '/dashboard/summary/month',
+      label: 'Résumé du mois',
+      icon: CalendarRange
     },
     {
       href: '/dashboard/users',
@@ -40,6 +64,26 @@ export function Sidebar() {
       href: '/dashboard/user',
       label: 'Tableau de bord',
       icon: LayoutDashboard
+    },
+    {
+      href: '/dashboard/operations',
+      label: 'Opérations',
+      icon: Wallet
+    },
+    {
+      href: '/dashboard/summary/day',
+      label: 'Résumé du jour',
+      icon: Calendar
+    },
+    {
+      href: '/dashboard/summary/week',
+      label: 'Résumé de la semaine',
+      icon: CalendarDays
+    },
+    {
+      href: '/dashboard/summary/month',
+      label: 'Résumé du mois',
+      icon: CalendarRange
     },
     {
       href: '/dashboard/user/profile',

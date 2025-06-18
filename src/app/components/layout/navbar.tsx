@@ -13,7 +13,6 @@ export function Navbar() {
         <div className="navbar-inner">
           <div className="flex">
             <div className="navbar-brand">
-              <span>Elengi Water</span>
             </div>
             <div className="navbar-links">
               <Link

@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,15 +8,86 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String?
-  role      Role     @default(USER)
-  createdAt DateTime @default(now()) @map("created_at")
+  id              Int               @id @default(autoincrement())
+  email           String            @unique
+  password        String
+  name            String?
+  role            Role              @default(USER)
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  operations      Operation[]
+  summaries       MonthlySummary[]
+  dailySummaries  DailySummary[]
+  weeklySummaries WeeklySummary[]
 }
 
 enum Role {
   ADMIN
   USER
+}
+
+model Operation {
+  id          Int           @id @default(autoincrement())
+  user        User          @relation(fields: [userId], references: [id])
+  userId      Int
+  type        OperationType
+  category    Category      @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  amount      Float
+  date        DateTime      @default(now())
+  description String?
+  createdAt   DateTime      @default(now())
+}
+
+enum OperationType {
+  income
+  expense
+}
+
+model Category {
+  id         Int         @id @default(autoincrement())
+  name       String      @unique
+  type       OperationType
+  operations Operation[]
+}
+
+model DailySummary {
+  id          Int     @id @default(autoincrement())
+  userId      Int
+  date        DateTime
+  totalIncome Float   @default(0)
+  totalExpense Float  @default(0)
+  balance     Float   @default(0)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model WeeklySummary {
+  id          Int     @id @default(autoincrement())
+  userId      Int
+  week        Int
+  year        Int
+  totalIncome Float   @default(0)
+  totalExpense Float  @default(0)
+  balance     Float   @default(0)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, week, year])
+}
+
+model MonthlySummary {
+  id           Int      @id @default(autoincrement())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       Int
+  month        Int
+  year         Int
+  totalIncome  Float    @default(0)
+  totalExpense Float    @default(0)
+  balance      Float    @default(0)
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, month, year])
 }

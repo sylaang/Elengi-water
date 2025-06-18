@@ -1,6 +1,4 @@
 // src/app/api/users/route.ts
-import { withAdminAuth } from "@/app/lib/middleware/admin-auth";
-import { userCreateSchema } from "@/app/lib/validations/user";
 import { prisma } from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
