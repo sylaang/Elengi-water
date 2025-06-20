@@ -11,11 +11,13 @@ import {
   Wallet,
   Calendar,
   CalendarDays,
-  CalendarRange
+  CalendarRange,
+  List,
+  Tag
 } from 'lucide-react';
 import { useAuth } from '@/app/providers/auth-provider';
 
-export function Sidebar() {
+export function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const pathname = usePathname();
   const { user } = useAuth();
 
@@ -29,8 +31,18 @@ export function Sidebar() {
     },
     {
       href: '/dashboard/operations',
-      label: 'Opérations',
+      label: 'Nouvelle opération',
       icon: Wallet
+    },
+    {
+      href: '/dashboard/operations/list',
+      label: 'Liste des opérations',
+      icon: List
+    },
+    {
+      href: '/dashboard/categories',
+      label: 'Gestion des catégories',
+      icon: Tag
     },
     {
       href: '/dashboard/summary/day',
@@ -67,8 +79,13 @@ export function Sidebar() {
     },
     {
       href: '/dashboard/operations',
-      label: 'Opérations',
+      label: 'Nouvelle opération',
       icon: Wallet
+    },
+    {
+      href: '/dashboard/operations/list',
+      label: 'Liste des opérations',
+      icon: List
     },
     {
       href: '/dashboard/summary/day',
@@ -95,7 +112,7 @@ export function Sidebar() {
   const links = isAdmin ? adminLinks : userLinks;
 
   return (
-    <div className="w-64 h-screen bg-card-bg border-r border-card-border fixed left-0 top-0 p-4">
+    <div className={`${mobile ? 'block md:hidden' : 'hidden md:block'} w-64 h-screen fixed left-0 top-0 p-4 z-50 bg-[var(--card-bg)] border-r border-[var(--card-border)]`}>
       <div className="mb-8">
         <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>
           Elengi Water

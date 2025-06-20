@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { auth } from '@/auth';
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
 
   if (!session?.user) {
@@ -10,24 +10,41 @@ export async function GET() {
   }
 
   try {
-    // Calculer le début et la fin du mois
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId') ? parseInt(url.searchParams.get('userId')!) : null;
+
     const today = new Date();
-    const currentMonth = today.getMonth() + 1; // Ajout de 1 pour avoir les mois de 1 à 12
-    const startOfMonth = new Date(today.getFullYear(), currentMonth - 1, 1); // On soustrait 1 car new Date() attend 0-11
-    const endOfMonth = new Date(today.getFullYear(), currentMonth, 0); // On utilise currentMonth car new Date() attend 0-11
+    const currentMonth = today.getMonth() + 1;
+    const startOfMonth = new Date(today.getFullYear(), currentMonth - 1, 1);
+    const endOfMonth = new Date(today.getFullYear(), currentMonth, 0);
     endOfMonth.setHours(23, 59, 59, 999);
 
-    // Récupérer toutes les opérations du mois
+    let whereClause: any = {
+      date: {
+        gte: startOfMonth,
+        lte: endOfMonth
+      }
+    };
+    
+    if (session.user.role === 'ADMIN') {
+      if (userId) {
+        whereClause.userId = userId;
+      }
+    } else {
+      whereClause.userId = parseInt(session.user.id);
+    }
+
     const operations = await prisma.operation.findMany({
-      where: {
-        userId: parseInt(session.user.id),
-        date: {
-          gte: startOfMonth,
-          lte: endOfMonth
-        }
-      },
+      where: whereClause,
       include: {
-        category: true
+        category: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       },
       orderBy: {
         date: 'desc'
@@ -79,6 +96,11 @@ export async function GET() {
           category: {
             id: op.category.id,
             name: op.category.name
+          },
+          user: {
+            id: op.user.id,
+            name: op.user.name,
+            email: op.user.email
           }
         }))
       });
@@ -90,7 +112,10 @@ export async function GET() {
       totalIncome,
       totalExpense,
       balance: totalIncome - totalExpense,
-      weeklySummaries
+      weeklySummaries,
+      isAdmin: session.user.role === 'ADMIN',
+      totalOperations: operations.length,
+      filteredByUser: userId
     };
 
     return NextResponse.json(summary);

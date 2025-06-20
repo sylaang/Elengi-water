@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { auth } from '@/auth';
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
 
   if (!session?.user) {
@@ -11,24 +11,39 @@ export async function GET() {
   }
 
   try {
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId') ? parseInt(url.searchParams.get('userId')!) : null;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
+
+    let whereClause: any = {
+      date: {
+        gte: today,
+        lt: tomorrow
+      }
+    };
+    
+    if (session.user.role === 'ADMIN') {
+      if (userId) {
+        whereClause.userId = userId;
+      }
+    } else {
+      whereClause.userId = parseInt(session.user.id);
+    }
+
     const operations = await prisma.operation.findMany({
-      where: {
-        userId: parseInt(session.user.id),
-        date: {
-          gte: today,
-          lt: tomorrow
-        }
-      },
+      where: whereClause,
       include: {
         category: true,
         user: {
           select: {
-            name: true
+            id: true,
+            name: true,
+            email: true
           }
         }
       },
@@ -60,9 +75,14 @@ export async function GET() {
           name: op.category.name
         },
         user: {
-          name: op.user.name
+          id: op.user.id,
+          name: op.user.name,
+          email: op.user.email
         }
-      }))
+      })),
+      isAdmin: session.user.role === 'ADMIN',
+      totalOperations: operations.length,
+      filteredByUser: userId
     };
 
     return NextResponse.json(summary);

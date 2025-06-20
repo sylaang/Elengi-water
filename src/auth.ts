@@ -119,7 +119,6 @@ const authConfig = {
   pages: {
     signIn: "/login",
     error: "/login",
-    signOut: "/logout",
   },
   debug: process.env.NODE_ENV === "development",
 } satisfies AuthConfig

@@ -23,7 +23,7 @@ export default function OperationsPage() {
   if (loading) return <p>Chargement des catégories...</p>;
 
   return (
-    <div className="p-6">
+    <div className="px-4 py-6 overflow-x-hidden w-full bg-[var(--card-bg)] border border-[var(--card-border)]">
       <h1 className="text-2xl font-bold mb-4">Nouvelle opération</h1>
       <OperationForm categories={categories} />
     </div>

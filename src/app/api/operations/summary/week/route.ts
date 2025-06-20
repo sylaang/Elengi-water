@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { auth } from '@/auth';
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
 
   if (!session?.user) {
@@ -10,23 +10,43 @@ export async function GET() {
   }
 
   try {
-    // Calculer le début et la fin de la semaine
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId') ? parseInt(url.searchParams.get('userId')!) : null;
+
     const today = new Date();
     const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay()); // Dimanche
+    startOfWeek.setDate(today.getDate() - today.getDay()); 
     startOfWeek.setHours(0, 0, 0, 0);
 
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 7);
     endOfWeek.setHours(0, 0, 0, 0);
 
-    // Récupérer toutes les opérations de la semaine
+
+    let whereClause: any = {
+      date: {
+        gte: startOfWeek,
+        lt: endOfWeek
+      }
+    };
+    
+    if (session.user.role === 'ADMIN') {
+      if (userId) {
+        whereClause.userId = userId;
+      }
+    } else {
+      whereClause.userId = parseInt(session.user.id);
+    }
+
     const operations = await prisma.operation.findMany({
-      where: {
-        userId: parseInt(session.user.id),
-        date: {
-          gte: startOfWeek,
-          lt: endOfWeek
+      where: whereClause,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
         }
       },
       orderBy: {
@@ -34,7 +54,6 @@ export async function GET() {
       }
     });
 
-    // Calculer les totaux
     const totalIncome = operations
       .filter(op => op.type === 'income')
       .reduce((sum, op) => sum + op.amount, 0);
@@ -43,7 +62,6 @@ export async function GET() {
       .filter(op => op.type === 'expense')
       .reduce((sum, op) => sum + op.amount, 0);
 
-    // Grouper les opérations par jour
     const dailySummaries = Array.from({ length: 7 }, (_, i) => {
       const dayStart = new Date(startOfWeek);
       dayStart.setDate(startOfWeek.getDate() + i);
@@ -66,7 +84,8 @@ export async function GET() {
         date: dayStart.toISOString(),
         totalIncome: dayIncome,
         totalExpense: dayExpense,
-        balance: dayIncome - dayExpense
+        balance: dayIncome - dayExpense,
+        operationsCount: dayOperations.length
       };
     });
 
@@ -74,7 +93,10 @@ export async function GET() {
       totalIncome,
       totalExpense,
       balance: totalIncome - totalExpense,
-      dailySummaries
+      dailySummaries,
+      isAdmin: session.user.role === 'ADMIN',
+      totalOperations: operations.length,
+      filteredByUser: userId
     };
 
     return NextResponse.json(summary);

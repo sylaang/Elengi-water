@@ -71,15 +71,15 @@ export default function DaySummary() {
     <div className="space-y-6">
       {/* Cartes de résumé */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-green-50 p-4 rounded-lg">
+        <div className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
           <h3 className="text-sm font-medium text-green-800">Revenus du jour</h3>
           <p className="text-2xl font-bold text-green-600">{summary.totalIncome.toFixed(2)} €</p>
         </div>
-        <div className="bg-red-50 p-4 rounded-lg">
+        <div className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
           <h3 className="text-sm font-medium text-red-800">Dépenses du jour</h3>
           <p className="text-2xl font-bold text-red-600">{summary.totalExpense.toFixed(2)} €</p>
         </div>
-        <div className={`p-4 rounded-lg ${summary.balance >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
+        <div className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
           <h3 className="text-sm font-medium">Solde du jour</h3>
           <p className={`text-2xl font-bold ${summary.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {summary.balance.toFixed(2)} €
@@ -89,7 +89,7 @@ export default function DaySummary() {
 
       {/* Diagramme circulaire des dépenses */}
       {pieData.length > 0 && (
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] shadow">
           <h2 className="text-lg font-semibold mb-4">Répartition des dépenses</h2>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -125,7 +125,7 @@ export default function DaySummary() {
     {summary.operations.map((operation) => (
       <div
         key={operation.id}
-        className="p-4 rounded-lg bg-white shadow"
+        className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] shadow"
       >
         <div className="flex justify-between items-center">
           <div>

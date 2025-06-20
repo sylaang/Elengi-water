@@ -19,6 +19,87 @@ function getISOWeek(date: Date): number {
   return Math.ceil((((tmp.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
 }
 
+// GET - Récupérer toutes les opérations (toutes pour admin, seulement les siennes pour user)
+export async function GET(request: Request) {
+  const session = await auth();
+
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const url = new URL(request.url);
+    const limit = url.searchParams.get('limit') ? parseInt(url.searchParams.get('limit')!) : 50;
+    const offset = url.searchParams.get('offset') ? parseInt(url.searchParams.get('offset')!) : 0;
+    const userId = url.searchParams.get('userId') ? parseInt(url.searchParams.get('userId')!) : null;
+
+    // Si l'utilisateur est admin, récupérer toutes les opérations
+    // Sinon, récupérer seulement ses propres opérations
+    let whereClause: any = {};
+    
+    if (session.user.role === 'ADMIN') {
+      // Admin peut filtrer par utilisateur spécifique
+      if (userId) {
+        whereClause.userId = userId;
+      }
+    } else {
+      // Utilisateur normal voit seulement ses opérations
+      whereClause.userId = parseInt(session.user.id);
+    }
+
+    const operations = await prisma.operation.findMany({
+      where: whereClause,
+      include: {
+        category: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        date: 'desc',
+      },
+      take: limit,
+      skip: offset,
+    });
+
+    const total = await prisma.operation.count({
+      where: whereClause,
+    });
+
+    return NextResponse.json({
+      operations: operations.map(op => ({
+        id: op.id,
+        amount: op.amount,
+        type: op.type,
+        description: op.description,
+        date: op.date.toISOString(),
+        category: {
+          id: op.category.id,
+          name: op.category.name
+        },
+        user: {
+          id: op.user.id,
+          name: op.user.name,
+          email: op.user.email
+        }
+      })),
+      total,
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error('Error fetching operations:', error);
+    return NextResponse.json(
+      { error: 'Une erreur est survenue lors de la récupération des opérations' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(req: Request) {
   const session = await auth();
 

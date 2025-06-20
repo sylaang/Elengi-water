@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { useAuth } from '@/app/providers/auth-provider';
+import { UserFilter } from '@/app/components/ui/user-filter';
 
 type Summary = {
   totalIncome: number;
@@ -12,30 +14,41 @@ type Summary = {
     totalIncome: number;
     totalExpense: number;
     balance: number;
+    operationsCount?: number;
   }>;
+  isAdmin?: boolean;
+  totalOperations?: number;
+  filteredByUser?: number | null;
 };
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FF6B6B', '#4ECDC4'];
 
 export default function WeekSummary() {
+  const { user } = useAuth();
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchSummary = async () => {
-      try {
-        const response = await fetch('/api/operations/summary/week');
-        const data = await response.json();
-        setSummary(data);
-      } catch (error) {
-        console.error('Erreur lors du chargement du résumé:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSummary();
-  }, []);
+  }, [selectedUserId]);
+
+  const fetchSummary = async () => {
+    try {
+      const url = new URL('/api/operations/summary/week', window.location.origin);
+      if (selectedUserId) {
+        url.searchParams.set('userId', selectedUserId.toString());
+      }
+      
+      const response = await fetch(url.toString());
+      const data = await response.json();
+      setSummary(data);
+    } catch (error) {
+      console.error('Erreur lors du chargement du résumé:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return <div>Chargement...</div>;
@@ -55,18 +68,39 @@ export default function WeekSummary() {
 
   return (
     <div className="space-y-6">
+      {/* Filtre utilisateur (admin uniquement) */}
+      {user?.role === 'ADMIN' && (
+        <div className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+          <UserFilter
+            selectedUserId={selectedUserId}
+            onUserChange={setSelectedUserId}
+          />
+        </div>
+      )}
+
       {/* Cartes de résumé */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-green-50 p-4 rounded-lg">
-          <h3 className="text-sm font-medium text-green-800">Revenus de la semaine</h3>
+        <div className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+          <h3 className="text-sm font-medium text-green-800">
+            {summary.isAdmin ? 'Revenus totaux de la semaine' : 'Revenus de la semaine'}
+          </h3>
           <p className="text-2xl font-bold text-green-600">{summary.totalIncome.toFixed(2)} €</p>
+          {summary.isAdmin && summary.totalOperations && (
+            <p className="text-xs text-green-600 mt-1">
+              {summary.totalOperations} opération(s)
+            </p>
+          )}
         </div>
-        <div className="bg-red-50 p-4 rounded-lg">
-          <h3 className="text-sm font-medium text-red-800">Dépenses de la semaine</h3>
+        <div className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+          <h3 className="text-sm font-medium text-red-800">
+            {summary.isAdmin ? 'Dépenses totales de la semaine' : 'Dépenses de la semaine'}
+          </h3>
           <p className="text-2xl font-bold text-red-600">{summary.totalExpense.toFixed(2)} €</p>
         </div>
-        <div className={`p-4 rounded-lg ${summary.balance >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
-          <h3 className="text-sm font-medium">Solde de la semaine</h3>
+        <div className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+          <h3 className="text-sm font-medium">
+            {summary.isAdmin ? 'Solde total de la semaine' : 'Solde de la semaine'}
+          </h3>
           <p className={`text-2xl font-bold ${summary.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {summary.balance.toFixed(2)} €
           </p>
@@ -75,8 +109,10 @@ export default function WeekSummary() {
 
       {/* Diagramme circulaire des dépenses */}
       {pieData.length > 0 && (
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Répartition des dépenses par jour</h2>
+        <div className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] shadow">
+          <h2 className="text-lg font-semibold mb-4">
+            {summary.isAdmin ? 'Répartition des dépenses totales par jour' : 'Répartition des dépenses par jour'}
+          </h2>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -106,12 +142,14 @@ export default function WeekSummary() {
 
       {/* Résumé journalier */}
       <div>
-        <h2 className="text-lg font-semibold mb-4">Résumé par jour</h2>
+        <h2 className="text-lg font-semibold mb-4">
+          {summary.isAdmin ? 'Résumé total par jour' : 'Résumé par jour'}
+        </h2>
         <div className="space-y-2">
           {summary.dailySummaries.map((day) => (
             <div
               key={day.date}
-              className="p-4 rounded-lg bg-white shadow"
+              className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] shadow"
             >
               <div className="flex justify-between items-center">
                 <div>
@@ -122,6 +160,11 @@ export default function WeekSummary() {
                       month: 'long'
                     })}
                   </p>
+                  {summary.isAdmin && day.operationsCount && (
+                    <p className="text-xs text-gray-500">
+                      {day.operationsCount} opération(s)
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-4">
                   <div className="text-right">

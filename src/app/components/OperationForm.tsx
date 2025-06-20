@@ -82,10 +82,10 @@ export default function OperationForm({ categories }: { categories: Category[] }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-4">
+        <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-4 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg">
             {/* Champ Montant */}
             <div>
-                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="amount" className="block text-sm font-medium mb-1 text-[var(--foreground)]">
                     Montant *
                 </label>
                 <input
@@ -104,7 +104,7 @@ export default function OperationForm({ categories }: { categories: Category[] }
 
             {/* Champ Catégorie */}
             <div>
-                <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="categoryId" className="block text-sm font-medium mb-1 text-[var(--foreground)]">
                     Catégorie *
                 </label>
                 <select
@@ -129,7 +129,7 @@ export default function OperationForm({ categories }: { categories: Category[] }
 
             {/* Champ Type */}
             <div>
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="type" className="block text-sm font-medium mb-1 text-[var(--foreground)]">
                     Type *
                 </label>
                 <select
@@ -146,7 +146,7 @@ export default function OperationForm({ categories }: { categories: Category[] }
 
             {/* Champ Description */}
             <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="description" className="block text-sm font-medium mb-1 text-[var(--foreground)]">
                     Description (facultative)
                 </label>
                 <input
@@ -175,10 +175,10 @@ export default function OperationForm({ categories }: { categories: Category[] }
             {/* Message de feedback */}
             {message && (
                 <div
-                    className={`p-3 rounded-md ${message.isError
-                            ? 'bg-red-50 text-red-800'
-                            : 'bg-green-50 text-green-800'
-                        }`}
+                    className={`p-3 rounded-md border ${message.isError
+                            ? 'border-red-300 text-red-800'
+                            : 'border-green-300 text-green-800'
+                        } bg-[var(--card-bg)]`}
                 >
                     <p className="text-sm">{message.text}</p>
                 </div>
