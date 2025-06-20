@@ -1,9 +1,12 @@
+// src\app\operations\summary
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { useAuth } from '@/app/providers/auth-provider';
 import { UserFilter } from '@/app/components/ui/user-filter';
+import { DownloadSummaryButton } from '@/app/components/ui/DownloadSummaryButton';
 
 type Summary = {
   totalIncome: number;
@@ -19,6 +22,16 @@ type Summary = {
   isAdmin?: boolean;
   totalOperations?: number;
   filteredByUser?: number | null;
+  operations?: Operation[];
+};
+
+type Operation = {
+  date: string;
+  description: string;
+  amount: number;
+  type: string;
+  user?: string;
+  category?: string;
 };
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FF6B6B', '#4ECDC4'];
@@ -106,6 +119,12 @@ export default function WeekSummary() {
           </p>
         </div>
       </div>
+      {/* Bouton téléchargement Excel */}
+      {summary.operations && summary.operations.length > 0 && (
+        <div className="mt-6">
+          <DownloadSummaryButton summaryType="week" summaryData={summary.operations} />
+        </div>
+      )}
 
       {/* Diagramme circulaire des dépenses */}
       {pieData.length > 0 && (

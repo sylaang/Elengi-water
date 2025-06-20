@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       end = endOfDay(now);
       break;
     case 'week':
-      start = startOfWeek(now, { weekStartsOn: 1 }); // Lundi début de semaine
+      start = startOfWeek(now, { weekStartsOn: 1 })
       end = endOfWeek(now, { weekStartsOn: 1 });
       break;
     case 'month':

@@ -5,6 +5,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { User } from 'lucide-react';
 import { useAuth } from '@/app/providers/auth-provider';
 import { UserFilter } from '@/app/components/ui/user-filter';
+import { DownloadSummaryButton } from '@/app/components/ui/DownloadSummaryButton';
+
 
 type Summary = {
   totalIncome: number;
@@ -36,6 +38,16 @@ type Summary = {
   isAdmin?: boolean;
   totalOperations?: number;
   filteredByUser?: number | null;
+  operations?: Operation[];
+};
+
+type Operation = {
+  date: string;
+  description: string;
+  amount: number;
+  type: string;
+  user?: string;      // juste le nom ou identifiant simplifié
+  category?: string;  // juste le nom simplifié
 };
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FF6B6B', '#4ECDC4'];
@@ -67,7 +79,7 @@ export default function MonthSummary() {
       if (selectedUserId) {
         url.searchParams.set('userId', selectedUserId.toString());
       }
-      
+
       const response = await fetch(url.toString());
       const data = await response.json();
       setSummary(data);
@@ -135,6 +147,20 @@ export default function MonthSummary() {
         </div>
       </div>
 
+      {/* Bouton téléchargement Excel */}
+      {summary.operations && summary.operations.length > 0 ? (
+        <div className="mt-6">
+          <DownloadSummaryButton summaryType="month" summaryData={summary.operations} />
+        </div>
+      ) : (
+        <div className="mt-6 flex items-center gap-2 opacity-50 cursor-not-allowed">
+          <button disabled className="px-4 py-2 bg-gray-300 rounded text-gray-600" style={{ pointerEvents: 'none' }}>
+            Télécharger le résumé (Excel)
+          </button>
+          <span className="text-sm text-gray-500">Aucune opération à exporter ce mois-ci</span>
+        </div>
+      )}
+
       {/* Diagramme circulaire des dépenses */}
       {pieData.length > 0 && (
         <div className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] shadow">
@@ -158,7 +184,7 @@ export default function MonthSummary() {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip 
+                <Tooltip
                   formatter={(value: number) => `${value.toFixed(2)} €`}
                 />
                 <Legend />
@@ -179,7 +205,7 @@ export default function MonthSummary() {
               key={week.weekStart}
               className="rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] shadow overflow-hidden"
             >
-              <div 
+              <div
                 className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                 onClick={() => toggleWeek(week.weekStart)}
               >
@@ -203,15 +229,14 @@ export default function MonthSummary() {
                       <p className="text-sm text-green-600">+{week.totalIncome.toFixed(2)} €</p>
                       <p className="text-sm text-red-600">-{week.totalExpense.toFixed(2)} €</p>
                     </div>
-                    <div className={`text-right font-bold ${
-                      week.balance >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <div className={`text-right font-bold ${week.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
                       {week.balance.toFixed(2)} €
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               {/* Menu déroulant avec les détails */}
               {expandedWeeks.has(week.weekStart) && (
                 <div className="border-t border-[var(--card-border)] p-4 bg-[var(--card-bg)]">
@@ -255,9 +280,8 @@ export default function MonthSummary() {
                                 })}
                               </p>
                             </div>
-                            <p className={`font-bold text-sm ${
-                              operation.type === 'income' ? 'text-green-600' : 'text-red-600'
-                            }`}>
+                            <p className={`font-bold text-sm ${operation.type === 'income' ? 'text-green-600' : 'text-red-600'
+                              }`}>
                               {operation.type === 'income' ? '+' : '-'}{operation.amount.toFixed(2)} €
                             </p>
                           </div>

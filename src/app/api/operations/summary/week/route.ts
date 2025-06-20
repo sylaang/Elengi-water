@@ -1,3 +1,5 @@
+// src\app\api\operations\summary\week
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { auth } from '@/auth';
@@ -47,6 +49,12 @@ export async function GET(request: Request) {
             name: true,
             email: true
           }
+        },
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
         }
       },
       orderBy: {
@@ -89,6 +97,15 @@ export async function GET(request: Request) {
       };
     });
 
+    const exportableOperations = operations.map(op => ({
+      date: op.date.toISOString(),
+      description: op.description || '',
+      amount: op.amount,
+      type: op.type,
+      user: op.user?.name ?? '',
+      category: op.category?.name ?? '',
+    }));
+
     const summary = {
       totalIncome,
       totalExpense,
@@ -96,7 +113,8 @@ export async function GET(request: Request) {
       dailySummaries,
       isAdmin: session.user.role === 'ADMIN',
       totalOperations: operations.length,
-      filteredByUser: userId
+      filteredByUser: userId,
+      operations: exportableOperations
     };
 
     return NextResponse.json(summary);

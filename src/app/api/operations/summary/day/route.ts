@@ -71,7 +71,6 @@ export async function GET(request: Request) {
         description: op.description || '',
         date: op.date.toISOString(),
         category: {
-          id: op.category.id,
           name: op.category.name
         },
         user: {

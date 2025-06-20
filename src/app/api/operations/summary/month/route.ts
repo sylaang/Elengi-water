@@ -14,9 +14,8 @@ export async function GET(request: Request) {
     const userId = url.searchParams.get('userId') ? parseInt(url.searchParams.get('userId')!) : null;
 
     const today = new Date();
-    const currentMonth = today.getMonth() + 1;
-    const startOfMonth = new Date(today.getFullYear(), currentMonth - 1, 1);
-    const endOfMonth = new Date(today.getFullYear(), currentMonth, 0);
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     endOfMonth.setHours(23, 59, 59, 999);
 
     let whereClause: any = {
@@ -25,7 +24,7 @@ export async function GET(request: Request) {
         lte: endOfMonth
       }
     };
-    
+
     if (session.user.role === 'ADMIN') {
       if (userId) {
         whereClause.userId = userId;
@@ -37,21 +36,20 @@ export async function GET(request: Request) {
     const operations = await prisma.operation.findMany({
       where: whereClause,
       include: {
-        category: true,
         user: {
           select: {
             id: true,
             name: true,
             email: true
           }
-        }
+        },
+        category: true
       },
       orderBy: {
         date: 'desc'
       }
     });
 
-    // Calculer les totaux
     const totalIncome = operations
       .filter(op => op.type === 'income')
       .reduce((sum, op) => sum + op.amount, 0);
@@ -60,14 +58,18 @@ export async function GET(request: Request) {
       .filter(op => op.type === 'expense')
       .reduce((sum, op) => sum + op.amount, 0);
 
-    // Grouper les opérations par semaine
     const weeklySummaries = [];
     let currentWeekStart = new Date(startOfMonth);
-    
+
     while (currentWeekStart <= endOfMonth) {
       const weekEnd = new Date(currentWeekStart);
       weekEnd.setDate(currentWeekStart.getDate() + 6);
       weekEnd.setHours(23, 59, 59, 999);
+
+      // Clamp weekEnd à endOfMonth pour la dernière semaine
+      if (weekEnd > endOfMonth) {
+        weekEnd.setTime(endOfMonth.getTime());
+      }
 
       const weekOperations = operations.filter(op => 
         op.date >= currentWeekStart && op.date <= weekEnd
@@ -107,6 +109,15 @@ export async function GET(request: Request) {
 
       currentWeekStart.setDate(currentWeekStart.getDate() + 7);
     }
+    
+    const exportableOperations = operations.map(op => ({
+      date: op.date.toISOString(),
+      description: op.description || '',
+      amount: op.amount,
+      type: op.type,
+      user: op.user?.name ?? '',
+      category: op.category?.name ?? ''
+    }));
 
     const summary = {
       totalIncome,
@@ -115,7 +126,8 @@ export async function GET(request: Request) {
       weeklySummaries,
       isAdmin: session.user.role === 'ADMIN',
       totalOperations: operations.length,
-      filteredByUser: userId
+      filteredByUser: userId,
+      operations: exportableOperations
     };
 
     return NextResponse.json(summary);
@@ -126,4 +138,4 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

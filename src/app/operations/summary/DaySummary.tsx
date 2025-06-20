@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { DownloadSummaryButton } from '@/app/components/ui/DownloadSummaryButton';
+
 
 type Summary = {
   totalIncome: number;
@@ -87,6 +89,23 @@ export default function DaySummary() {
         </div>
       </div>
 
+      {/* Bouton téléchargement Excel */}
+      {summary.operations && summary.operations.length > 0 && (
+        <div className="mt-6">
+          <DownloadSummaryButton
+            summaryType="day"
+            summaryData={summary.operations.map(op => ({
+              date: op.date,
+              description: op.description,
+              amount: op.amount,
+              type: op.type,
+              user: op.user?.name || '',
+              category: op.category?.name || '',
+            }))}
+          />
+        </div>
+      )}
+
       {/* Diagramme circulaire des dépenses */}
       {pieData.length > 0 && (
         <div className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] shadow">
@@ -108,7 +127,7 @@ export default function DaySummary() {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip 
+                <Tooltip
                   formatter={(value: number) => `${value.toFixed(2)} €`}
                 />
                 <Legend />
@@ -120,51 +139,50 @@ export default function DaySummary() {
 
       {/* Liste des opérations */}
       <div>
-  <h2 className="text-lg font-semibold mb-4">Opérations du jour</h2>
-  <div className="space-y-2">
-    {summary.operations.map((operation) => (
-      <div
-        key={operation.id}
-        className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] shadow"
-      >
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="font-medium">
-              {operation.category?.name || 'Sans catégorie'}
-            </p>
+        <h2 className="text-lg font-semibold mb-4">Opérations du jour</h2>
+        <div className="space-y-2">
+          {summary.operations.map((operation) => (
+            <div
+              key={operation.id}
+              className="p-4 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] shadow"
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-medium">
+                    {operation.category?.name || 'Sans catégorie'}
+                  </p>
 
-            {operation.description && (
-              <p className="text-sm text-gray-600">
-                {operation.description}
-              </p>
-            )}
+                  {operation.description && (
+                    <p className="text-sm text-gray-600">
+                      {operation.description}
+                    </p>
+                  )}
 
-            <p className="text-sm text-gray-500">
-              {new Date(operation.date).toLocaleTimeString('fr-FR', {
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(operation.date).toLocaleTimeString('fr-FR', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
 
-            {/* ✅ Ajout du nom de l'utilisateur */}
-            <p className="text-sm text-gray-700">
-              Ajouté par : {operation.user?.name || 'Utilisateur inconnu'}
-            </p>
-          </div>
+                  {/* ✅ Ajout du nom de l'utilisateur */}
+                  <p className="text-sm text-gray-700">
+                    Ajouté par : {operation.user?.name || 'Utilisateur inconnu'}
+                  </p>
+                </div>
 
-          <p
-            className={`font-bold ${
-              operation.type === 'income' ? 'text-green-600' : 'text-red-600'
-            }`}
-          >
-            {operation.type === 'income' ? '+' : '-'}
-            {operation.amount.toFixed(2)} €
-          </p>
+                <p
+                  className={`font-bold ${operation.type === 'income' ? 'text-green-600' : 'text-red-600'
+                    }`}
+                >
+                  {operation.type === 'income' ? '+' : '-'}
+                  {operation.amount.toFixed(2)} €
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-    ))}
-  </div>
-</div>
 
     </div>
   );
