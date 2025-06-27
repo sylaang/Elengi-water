@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ES2017",
+    "outDir": "./dist",
+    "rootDir": ".",
+    "noEmit": false,
+    "esModuleInterop": true
+  },
+  "include": ["prisma/seed.ts"]
+}
